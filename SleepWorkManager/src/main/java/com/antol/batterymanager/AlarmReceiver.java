@@ -19,13 +19,12 @@ import java.lang.reflect.Method;
 import java.util.Calendar;
 
 /**
- * Created by Chris on 9/7/13.
+ * Created by CSAntol on 9/7/13.
  */
 public class AlarmReceiver extends BroadcastReceiver {
     private static final String TAG = AlarmReceiver.class.getSimpleName();
-    public static enum Alteration { ENABLE_NETWORK, DISABLE_NETWORK, ENABLE_RINGER, DISABLE_RINGER }
-
-    public static final String ALTER = "alter";
+    protected static enum Alteration { ENABLE_NETWORK, DISABLE_NETWORK, ENABLE_RINGER, DISABLE_RINGER }
+    protected static final String ALTER = "alter";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -75,7 +74,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         alarmManager.cancel(sender);
         sender = PendingIntent.getBroadcast(context, MainActivity.REQUEST_CODE_DISABLE_NETWORK, intent, 0);
         alarmManager.cancel(sender);
-        Toast.makeText(context, context.getString(R.string.cancel_alarm), Toast.LENGTH_SHORT).show();
     }
 
     private void enableNetwork(Context context, boolean enabled) {

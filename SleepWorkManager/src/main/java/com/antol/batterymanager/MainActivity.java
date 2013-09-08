@@ -19,7 +19,7 @@ import android.widget.Toast;
 import java.util.Calendar;
 
 /**
- * Created by Chris on 9/7/13.
+ * Created by CSAntol on 9/7/13.
  */
 public class MainActivity extends Activity {
 
@@ -186,6 +186,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 alarm.cancelAlarm(context);
+                Toast.makeText(context, context.getString(R.string.cancel_alarm), Toast.LENGTH_SHORT).show();
             }
         });
     }
