@@ -36,9 +36,9 @@ public class AlarmReceiver extends BroadcastReceiver {
                 return;
             }
         }
-        PowerManager powermanager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        /*PowerManager powermanager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = powermanager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        wakeLock.acquire();
+        wakeLock.acquire();*/
         try {
             Bundle bundle = intent.getExtras();
             assert bundle != null;
@@ -60,20 +60,28 @@ public class AlarmReceiver extends BroadcastReceiver {
             e.printStackTrace();
         }
 
-        wakeLock.release();
+        //wakeLock.release();
     }
 
-    public void cancelAlarm(Context context) {
+    protected void cancelSleepAlarm(Context context, AlarmManager alarmManager) {
         Intent intent = new Intent(context, AlarmReceiver.class);
-        PendingIntent sender = PendingIntent.getBroadcast(context, MainActivity.REQUEST_CODE_ENABLE_RINGER, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.cancel(sender);
-        sender = PendingIntent.getBroadcast(context, MainActivity.REQUEST_CODE_DISABLE_RINGER, intent, 0);
-        alarmManager.cancel(sender);
-        sender = PendingIntent.getBroadcast(context, MainActivity.REQUEST_CODE_ENABLE_NETWORK, intent, 0);
+        PendingIntent sender = PendingIntent.getBroadcast(context, MainActivity.REQUEST_CODE_ENABLE_NETWORK, intent, 0);
         alarmManager.cancel(sender);
         sender = PendingIntent.getBroadcast(context, MainActivity.REQUEST_CODE_DISABLE_NETWORK, intent, 0);
         alarmManager.cancel(sender);
+    }
+
+    protected void cancelWorkAlarm(Context context, AlarmManager alarmManager) {
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        PendingIntent sender = PendingIntent.getBroadcast(context, MainActivity.REQUEST_CODE_ENABLE_RINGER, intent, 0);
+        alarmManager.cancel(sender);
+        sender = PendingIntent.getBroadcast(context, MainActivity.REQUEST_CODE_DISABLE_RINGER, intent, 0);
+        alarmManager.cancel(sender);
+    }
+
+    protected void cancelAlarm(Context context, AlarmManager alarmManager) {
+        cancelSleepAlarm(context, alarmManager);
+        cancelWorkAlarm(context, alarmManager);
     }
 
     private void enableNetwork(Context context, boolean enabled) {

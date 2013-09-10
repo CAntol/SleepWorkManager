@@ -46,6 +46,7 @@ public class MainActivity extends Activity {
 
         alarm = new AlarmReceiver();
         final Context context = this;
+        final AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         Button start = (Button) findViewById(R.id.start_service);
         Button stop = (Button) findViewById(R.id.stop_service);
@@ -135,12 +136,11 @@ public class MainActivity extends Activity {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                alarm.cancelAlarm(context);
-
                 Calendar cal;
                 Intent intent;
                 PendingIntent pendingIntent;
-                AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+                boolean noSleep = false, noWork = false;
 
                 if (!(sp.getInt(SLEEP_END_HOUR, 0) == sp.getInt(SLEEP_START_HOUR, 0) && sp.getInt(SLEEP_END_MIN, 0) == sp.getInt(SLEEP_START_MIN, 0))) {
 
@@ -158,6 +158,9 @@ public class MainActivity extends Activity {
                     cal = setCalendar(sp.getInt(SLEEP_START_HOUR, 0), sp.getInt(SLEEP_START_MIN, 0));
                     alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
 
+                } else {
+                    noSleep = true;
+                    alarm.cancelSleepAlarm(context, alarmManager);
                 }
 
                 if (!(sp.getInt(WORK_END_HOUR, 0) == sp.getInt(WORK_START_HOUR, 0) && sp.getInt(WORK_END_MIN, 0) == sp.getInt(WORK_START_MIN, 0))) {
@@ -176,16 +179,23 @@ public class MainActivity extends Activity {
                     cal = setCalendar(sp.getInt(WORK_END_HOUR, 0), sp.getInt(WORK_END_MIN, 0));
                     alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
 
+                } else {
+                    noWork = true;
+                    alarm.cancelWorkAlarm(context, alarmManager);
                 }
 
-                Toast.makeText(context, context.getString(R.string.set_alarm), Toast.LENGTH_SHORT).show();
+                if (noSleep && noWork) {
+                    Toast.makeText(context, context.getString(R.string.cancel_alarm), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, context.getString(R.string.set_alarm), Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                alarm.cancelAlarm(context);
+                alarm.cancelAlarm(context, alarmManager);
                 Toast.makeText(context, context.getString(R.string.cancel_alarm), Toast.LENGTH_SHORT).show();
             }
         });
@@ -201,12 +211,17 @@ public class MainActivity extends Activity {
         } else {
             hr = Integer.toString(startHr);
         }
-        textView.setText(String.format("%s:%s:00%s", hr, String.format("%s%d", startMin < 10 ? Integer.toString(0) : "", startMin), noonStatus));
+        textView.setText(String.format("%s:%s:00%s", hr, String.format("%s%d", startMin < 10 ? Integer.toString(0) : new String(), startMin), noonStatus));
     }
 
     private Calendar setCalendar(int hour, int min) {
         Calendar calendar = Calendar.getInstance();
 
+        // add a day if the requested time is in the past
+        if (calendar.get(Calendar.HOUR_OF_DAY) > hour ||
+                (calendar.get(Calendar.HOUR_OF_DAY) == hour && calendar.get(Calendar.MINUTE) >= min)) {
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        }
         calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, min);
         calendar.set(Calendar.SECOND, 0);
