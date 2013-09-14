@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -205,13 +206,13 @@ public class MainActivity extends Activity {
         String noonStatus = startHr > 11 ? "pm" : "am";
         String hr;
         if (startHr == 0) {
-            hr = Integer.toString(startHr + 12);
+            hr = Integer.toString(12);
         } else if (startHr > 12) {
             hr = Integer.toString(startHr - 12);
         } else {
             hr = Integer.toString(startHr);
         }
-        textView.setText(String.format("%s:%s:00%s", hr, String.format("%s%d", startMin < 10 ? Integer.toString(0) : new String(), startMin), noonStatus));
+        textView.setText(String.format("%s:%s:00%s", hr, String.format("%s%d", startMin < 10 ? Integer.toString(0) : "", startMin), noonStatus));
     }
 
     private Calendar setCalendar(int hour, int min) {
@@ -235,6 +236,17 @@ public class MainActivity extends Activity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, Credits.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
     
 }
