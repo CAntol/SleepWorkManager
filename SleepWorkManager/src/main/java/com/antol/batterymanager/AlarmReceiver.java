@@ -36,9 +36,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 return;
             }
         }
-        /*PowerManager powermanager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powermanager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        wakeLock.acquire();*/
+
         try {
             Bundle bundle = intent.getExtras();
             assert bundle != null;
@@ -60,7 +58,6 @@ public class AlarmReceiver extends BroadcastReceiver {
             e.printStackTrace();
         }
 
-        //wakeLock.release();
     }
 
     protected void cancelSleepAlarm(Context context, AlarmManager alarmManager) {

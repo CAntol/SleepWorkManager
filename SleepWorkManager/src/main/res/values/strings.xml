@@ -17,7 +17,8 @@
     <string name="sleep_start_text">Sleep Start</string>
     <string name="update">Update</string>
     <string name="weekend_disable">Disable on Weekends</string>
-    <string name="credit_title">Ideas man:</string>
-    <string name="credit_name">C. Holmes</string>
+    <string name="credit_title">Ideas man</string>
+    <string name="hyphen"> - </string>
+    <string name="credit_name">Chris Holmes</string>
 
 </resources>

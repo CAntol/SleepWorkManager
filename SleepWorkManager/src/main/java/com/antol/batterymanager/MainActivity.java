@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
     protected static final int REQUEST_CODE_ENABLE_RINGER = 98766;
     protected static final int REQUEST_CODE_DISABLE_NETWORK = 98767;
     protected static final int REQUEST_CODE_DISABLE_RINGER = 98768;
-    private AlarmReceiver alarm;
+    private static AlarmReceiver alarm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,59 +137,8 @@ public class MainActivity extends Activity {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Calendar cal;
-                Intent intent;
-                PendingIntent pendingIntent;
-
-                boolean noSleep = false, noWork = false;
-
-                if (!(sp.getInt(SLEEP_END_HOUR, 0) == sp.getInt(SLEEP_START_HOUR, 0) && sp.getInt(SLEEP_END_MIN, 0) == sp.getInt(SLEEP_START_MIN, 0))) {
-
-                    // Turn on network alarm
-                    intent = new Intent(context, AlarmReceiver.class);
-                    intent.putExtra(AlarmReceiver.ALTER, AlarmReceiver.Alteration.ENABLE_NETWORK.name());
-                    pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_ENABLE_NETWORK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    cal = setCalendar(sp.getInt(SLEEP_END_HOUR, 0), sp.getInt(SLEEP_END_MIN, 0));
-                    alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-
-                    // Turn off network alarm
-                    intent = new Intent(context, AlarmReceiver.class);
-                    intent.putExtra(AlarmReceiver.ALTER, AlarmReceiver.Alteration.DISABLE_NETWORK.name());
-                    pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_DISABLE_NETWORK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    cal = setCalendar(sp.getInt(SLEEP_START_HOUR, 0), sp.getInt(SLEEP_START_MIN, 0));
-                    alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-
-                } else {
-                    noSleep = true;
-                    alarm.cancelSleepAlarm(context, alarmManager);
-                }
-
-                if (!(sp.getInt(WORK_END_HOUR, 0) == sp.getInt(WORK_START_HOUR, 0) && sp.getInt(WORK_END_MIN, 0) == sp.getInt(WORK_START_MIN, 0))) {
-
-                    // Turn off ringer alarm
-                    intent = new Intent(context, AlarmReceiver.class);
-                    intent.putExtra(AlarmReceiver.ALTER, AlarmReceiver.Alteration.DISABLE_RINGER.name());
-                    pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_DISABLE_RINGER, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    cal = setCalendar(sp.getInt(WORK_START_HOUR, 0), sp.getInt(WORK_START_MIN, 0));
-                    alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-
-                    // Turn on ringer alarm
-                    intent = new Intent(context, AlarmReceiver.class);
-                    intent.putExtra(AlarmReceiver.ALTER, AlarmReceiver.Alteration.ENABLE_RINGER.name());
-                    pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_ENABLE_RINGER, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    cal = setCalendar(sp.getInt(WORK_END_HOUR, 0), sp.getInt(WORK_END_MIN, 0));
-                    alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-
-                } else {
-                    noWork = true;
-                    alarm.cancelWorkAlarm(context, alarmManager);
-                }
-
-                if (noSleep && noWork) {
+                if (!setAlarm(context))
                     Toast.makeText(context, context.getString(R.string.cancel_alarm), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(context, context.getString(R.string.set_alarm), Toast.LENGTH_SHORT).show();
-                }
             }
         });
 
@@ -215,7 +164,7 @@ public class MainActivity extends Activity {
         textView.setText(String.format("%s:%s:00%s", hr, String.format("%s%d", startMin < 10 ? Integer.toString(0) : "", startMin), noonStatus));
     }
 
-    private Calendar setCalendar(int hour, int min) {
+    private static Calendar setCalendar(int hour, int min) {
         Calendar calendar = Calendar.getInstance();
 
         // add a day if the requested time is in the past
@@ -247,6 +196,65 @@ public class MainActivity extends Activity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    protected static boolean setAlarm(Context context) {
+        Calendar cal;
+        Intent intent;
+        PendingIntent pendingIntent;
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        final SharedPreferences sp = context.getSharedPreferences(TAG, Activity.MODE_PRIVATE);
+
+        boolean noSleep = false, noWork = false;
+
+        if (!(sp.getInt(SLEEP_END_HOUR, 0) == sp.getInt(SLEEP_START_HOUR, 0) && sp.getInt(SLEEP_END_MIN, 0) == sp.getInt(SLEEP_START_MIN, 0))) {
+
+            // Turn on network alarm
+            intent = new Intent(context, AlarmReceiver.class);
+            intent.putExtra(AlarmReceiver.ALTER, AlarmReceiver.Alteration.ENABLE_NETWORK.name());
+            pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_ENABLE_NETWORK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            cal = setCalendar(sp.getInt(SLEEP_END_HOUR, 0), sp.getInt(SLEEP_END_MIN, 0));
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
+            // Turn off network alarm
+            intent = new Intent(context, AlarmReceiver.class);
+            intent.putExtra(AlarmReceiver.ALTER, AlarmReceiver.Alteration.DISABLE_NETWORK.name());
+            pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_DISABLE_NETWORK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            cal = setCalendar(sp.getInt(SLEEP_START_HOUR, 0), sp.getInt(SLEEP_START_MIN, 0));
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
+        } else {
+            noSleep = true;
+            alarm.cancelSleepAlarm(context, alarmManager);
+        }
+
+        if (!(sp.getInt(WORK_END_HOUR, 0) == sp.getInt(WORK_START_HOUR, 0) && sp.getInt(WORK_END_MIN, 0) == sp.getInt(WORK_START_MIN, 0))) {
+
+            // Turn off ringer alarm
+            intent = new Intent(context, AlarmReceiver.class);
+            intent.putExtra(AlarmReceiver.ALTER, AlarmReceiver.Alteration.DISABLE_RINGER.name());
+            pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_DISABLE_RINGER, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            cal = setCalendar(sp.getInt(WORK_START_HOUR, 0), sp.getInt(WORK_START_MIN, 0));
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
+            // Turn on ringer alarm
+            intent = new Intent(context, AlarmReceiver.class);
+            intent.putExtra(AlarmReceiver.ALTER, AlarmReceiver.Alteration.ENABLE_RINGER.name());
+            pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE_ENABLE_RINGER, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            cal = setCalendar(sp.getInt(WORK_END_HOUR, 0), sp.getInt(WORK_END_MIN, 0));
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
+        } else {
+            noWork = true;
+            alarm.cancelWorkAlarm(context, alarmManager);
+        }
+
+        if (noSleep && noWork) {
+            return false;
+        }
+        Toast.makeText(context, context.getString(R.string.set_alarm), Toast.LENGTH_SHORT).show();
+        return true;
     }
     
 }
